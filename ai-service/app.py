@@ -39,6 +39,21 @@ def recommend():
         "recommendations": result,
         "generated_at": datetime.utcnow().isoformat()
     }), 200
+@app.route("/generate-report", methods=["POST"])
+def generate_report():
+    data = request.get_json()
+    if not data or "input" not in data:
+        return jsonify({"error": "Invalid input"}), 400
 
+    result = call_groq("report", data["input"])
+
+    if result.get("is_fallback"):
+        return jsonify(result), 503
+
+    return jsonify({
+        **result,
+        "generated_at": datetime.utcnow().isoformat(),
+        "is_fallback": False
+    }), 200
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

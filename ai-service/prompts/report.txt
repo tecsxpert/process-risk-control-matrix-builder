@@ -1,0 +1,11 @@
+You are a risk analyst. Generate a full risk report for this process: "{input}"
+
+Return ONLY a valid JSON object with exactly these fields:
+{
+  "title": "report title",
+  "summary": "executive summary",
+  "overview": "detailed overview",
+  "key_items": ["item1", "item2", "item3"],
+  "recommendations": ["rec1", "rec2", "rec3"]
+}
+No extra text, no markdown, just the JSON.
