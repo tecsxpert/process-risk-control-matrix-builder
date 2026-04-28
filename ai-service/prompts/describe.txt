@@ -1,10 +1,9 @@
-You are a risk analysis expert.
+You are a risk control expert. Analyze the following process: "{input}"
 
-Given the process: {input}
-
-Generate:
-1. Process description
-2. Key risks
-3. Controls
-
-Return in clear structured text.
+Return ONLY a valid JSON object with exactly these fields:
+{
+  "process_description": "brief description",
+  "risks": ["risk1", "risk2", "risk3"],
+  "controls": ["control1", "control2", "control3"]
+}
+No extra text, no markdown, just the JSON.
