@@ -40,10 +40,19 @@ FALLBACK_TEMPLATES = {
     }
 }
 
-def call_groq(prompt_type, user_input):
+def call_groq(prompt_type, user_input, context: str = ""):
     from prompts.loader import load_prompt
 
     prompt = load_prompt(f"{prompt_type}.txt").replace("{input}", user_input)
+
+    if context:
+        prompt = f"""Use the following reference context to assist your response:
+
+--- CONTEXT START ---
+{context}
+--- CONTEXT END ---
+
+{prompt}"""
 
     cache_key = "ai:" + hashlib.sha256(prompt.encode()).hexdigest()
     if REDIS_AVAILABLE:

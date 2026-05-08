@@ -1,0 +1,42 @@
+[
+  {
+    "id": "doc1",
+    "text": "Segregation of duties divides responsibilities among multiple people to reduce fraud and error risk in financial processes."
+  },
+  {
+    "id": "doc2",
+    "text": "Accounts payable risks include duplicate payments, unauthorized vendors, and invoice fraud. Controls include three-way matching and approval workflows."
+  },
+  {
+    "id": "doc3",
+    "text": "Payroll risks include ghost employees, unauthorized salary changes, and timesheet fraud. Controls include HR approval and payroll reconciliation."
+  },
+  {
+    "id": "doc4",
+    "text": "Procurement risks include vendor collusion and unauthorized purchases. Controls include competitive bidding and purchase order approval."
+  },
+  {
+    "id": "doc5",
+    "text": "IT access control risks include unauthorized access and privilege escalation. Controls include role-based access and multi-factor authentication."
+  },
+  {
+    "id": "doc6",
+    "text": "Financial reporting risks include misstatement and manipulation of records. Controls include reconciliations, management review, and external audit."
+  },
+  {
+    "id": "doc7",
+    "text": "Cash management risks include theft and unauthorized transfers. Controls include dual authorization and daily reconciliation."
+  },
+  {
+    "id": "doc8",
+    "text": "Inventory risks include shrinkage and inaccurate stock counts. Controls include periodic physical counts and warehouse access restrictions."
+  },
+  {
+    "id": "doc9",
+    "text": "Revenue recognition risks include premature recognition and fictitious sales. Controls include contract review and period-end cut-off procedures."
+  },
+  {
+    "id": "doc10",
+    "text": "Compliance risks include regulatory breaches and data privacy violations. Controls include compliance training and regulatory reporting."
+  }
+]

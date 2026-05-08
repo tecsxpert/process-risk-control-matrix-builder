@@ -3,19 +3,21 @@ from datetime import datetime
 from services.groq_client import call_groq
 import time
 import re
+import json
+
+# ── Knowledge base context retrieval ─────────────────────────────
+def get_context(query: str) -> str:
+    try:
+        with open("data/knowledge_base.json") as f:
+            docs = json.load(f)
+        query_lower = query.lower()
+        matches = [d["text"] for d in docs if any(w in d["text"].lower() for w in query_lower.split())]
+        return "\n\n".join(matches[:3]) if matches else ""
+    except Exception:
+        return ""
 
 app = Flask(__name__)
 start_time = time.time()
-
-# Pre-load ChromaDB client at startup
-try:
-    import chromadb
-    print("Loading ChromaDB client...")
-    chroma_client = chromadb.EphemeralClient()   # ← fixed deprecated Client()
-    print("ChromaDB loaded successfully!")
-except Exception as e:
-    print(f"ChromaDB not available: {e}")
-    chroma_client = None
 
 # ── Security headers ─────────────────────────────────────────────
 @app.after_request
@@ -51,14 +53,17 @@ def describe():
     if clean is None:
         return jsonify({"error": "Invalid input — prompt injection detected"}), 400
 
-    result = call_groq("describe", clean)
-    if not isinstance(result, dict):                         # ← bug fix
+    context = get_context(clean)
+    result = call_groq("describe", clean, context=context)
+
+    if not isinstance(result, dict):
         return jsonify({"error": "Unexpected response format"}), 500
     if result.get("is_fallback"):
         return jsonify(result), 503
 
     return jsonify({
         "result": result,
+        "rag_context_used": bool(context),
         "generated_at": datetime.utcnow().isoformat()
     }), 200
 
@@ -73,12 +78,15 @@ def recommend():
     if clean is None:
         return jsonify({"error": "Invalid input — prompt injection detected"}), 400
 
-    result = call_groq("recommend", clean)
+    context = get_context(clean)
+    result = call_groq("recommend", clean, context=context)
+
     if isinstance(result, dict) and result.get("is_fallback"):
         return jsonify(result), 503
 
     return jsonify({
         "recommendations": result,
+        "rag_context_used": bool(context),
         "generated_at": datetime.utcnow().isoformat()
     }), 200
 
@@ -93,14 +101,17 @@ def generate_report():
     if clean is None:
         return jsonify({"error": "Invalid input — prompt injection detected"}), 400
 
-    result = call_groq("report", clean)
-    if not isinstance(result, dict):                         # ← bug fix
+    context = get_context(clean)
+    result = call_groq("report", clean, context=context)
+
+    if not isinstance(result, dict):
         return jsonify({"error": "Unexpected response format"}), 500
     if result.get("is_fallback"):
         return jsonify(result), 503
 
     return jsonify({
         **result,
+        "rag_context_used": bool(context),
         "generated_at": datetime.utcnow().isoformat(),
         "is_fallback": False
     }), 200
@@ -109,13 +120,19 @@ def generate_report():
 @app.route("/health", methods=["GET"])
 def health():
     uptime = round(time.time() - start_time, 2)
+    kb_count = 0
+    try:
+        with open("data/knowledge_base.json") as f:
+            kb_count = len(json.load(f))
+    except Exception:
+        pass
     return jsonify({
         "status": "ok",
         "model": "llama-3.3-70b-versatile",
         "uptime_seconds": uptime,
         "avg_response_time_ms": 800,
         "rate_limit": "30 req/min",
-        "chroma_status": "loaded" if chroma_client else "not loaded"  # ← bug fix
+        "knowledge_base_docs": kb_count
     }), 200
 
 if __name__ == "__main__":
