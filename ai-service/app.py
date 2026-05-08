@@ -7,6 +7,16 @@ import re
 app = Flask(__name__)
 start_time = time.time()
 
+# Pre-load ChromaDB client at startup
+try:
+    import chromadb
+    print("Loading ChromaDB client...")
+    chroma_client = chromadb.EphemeralClient()   # ← fixed deprecated Client()
+    print("ChromaDB loaded successfully!")
+except Exception as e:
+    print(f"ChromaDB not available: {e}")
+    chroma_client = None
+
 # ── Security headers ─────────────────────────────────────────────
 @app.after_request
 def add_security_headers(response):
@@ -42,6 +52,8 @@ def describe():
         return jsonify({"error": "Invalid input — prompt injection detected"}), 400
 
     result = call_groq("describe", clean)
+    if not isinstance(result, dict):                         # ← bug fix
+        return jsonify({"error": "Unexpected response format"}), 500
     if result.get("is_fallback"):
         return jsonify(result), 503
 
@@ -82,6 +94,8 @@ def generate_report():
         return jsonify({"error": "Invalid input — prompt injection detected"}), 400
 
     result = call_groq("report", clean)
+    if not isinstance(result, dict):                         # ← bug fix
+        return jsonify({"error": "Unexpected response format"}), 500
     if result.get("is_fallback"):
         return jsonify(result), 503
 
@@ -100,7 +114,8 @@ def health():
         "model": "llama-3.3-70b-versatile",
         "uptime_seconds": uptime,
         "avg_response_time_ms": 800,
-        "rate_limit": "30 req/min"
+        "rate_limit": "30 req/min",
+        "chroma_status": "loaded" if chroma_client else "not loaded"  # ← bug fix
     }), 200
 
 if __name__ == "__main__":
