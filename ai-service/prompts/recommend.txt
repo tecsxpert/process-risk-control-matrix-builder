@@ -1,0 +1,23 @@
+You are a risk and control expert. Based on the following business process input, provide exactly 3 actionable recommendations.
+
+Process Input: {input}
+
+Respond ONLY with a valid JSON array. No extra text, no markdown, no explanation.
+
+[
+  {
+    "action_type": "Preventive",
+    "description": "Your first recommendation here",
+    "priority": "High"
+  },
+  {
+    "action_type": "Detective",
+    "description": "Your second recommendation here",
+    "priority": "Medium"
+  },
+  {
+    "action_type": "Corrective",
+    "description": "Your third recommendation here",
+    "priority": "Low"
+  }
+]

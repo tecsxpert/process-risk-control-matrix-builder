@@ -40,10 +40,47 @@ FALLBACK_TEMPLATES = {
     }
 }
 
-def call_groq(prompt_type, user_input):
+def clean_json_response(content: str) -> str:
+    """Extract JSON from response, handling markdown and extra text."""
+    content = content.strip()
+    # Strip markdown code blocks
+    if "```" in content:
+        parts = content.split("```")
+        for part in parts:
+            part = part.strip()
+            if part.startswith("json"):
+                part = part[4:]
+            part = part.strip()
+            if part.startswith("{") or part.startswith("["):
+                return part
+    # Find first { or [ and last } or ]
+    start = -1
+    for i, c in enumerate(content):
+        if c in "{[":
+            start = i
+            break
+    end = -1
+    for i in range(len(content)-1, -1, -1):
+        if content[i] in "}]":
+            end = i
+            break
+    if start != -1 and end != -1:
+        return content[start:end+1]
+    return content
+
+def call_groq(prompt_type, user_input, context: str = ""):
     from prompts.loader import load_prompt
 
     prompt = load_prompt(f"{prompt_type}.txt").replace("{input}", user_input)
+
+    if context:
+        prompt = f"""Use the following reference context to assist your response:
+
+--- CONTEXT START ---
+{context}
+--- CONTEXT END ---
+
+{prompt}"""
 
     cache_key = "ai:" + hashlib.sha256(prompt.encode()).hexdigest()
     if REDIS_AVAILABLE:
@@ -76,6 +113,7 @@ def call_groq(prompt_type, user_input):
 
             if response.status_code == 200:
                 content = response.json()["choices"][0]["message"]["content"]
+                content = clean_json_response(content)
                 result = json.loads(content)
 
                 if REDIS_AVAILABLE:
